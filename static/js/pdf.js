@@ -69,41 +69,76 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating…';
     btn.disabled = true;
 
-    // Temporarily render at full A4 size for html2canvas
-    const savedTransform = previewEl.style.transform;
-    const savedMargin    = previewEl.style.marginBottom;
-    previewEl.style.transform    = 'scale(1)';
-    previewEl.style.transformOrigin = 'top left';
-    previewEl.style.marginBottom = '0';
-    previewEl.style.boxShadow    = 'none';
-    previewEl.style.borderRadius = '0';
+    // Clone the preview into a detached full-size container so transforms
+    // on the live element don't affect html2canvas capture geometry.
+    const clone = previewEl.cloneNode(true);
+    clone.style.cssText = [
+      'width:794px',
+      'transform:none',
+      'transform-origin:top left',
+      'margin:0',
+      'padding:0',
+      'box-shadow:none',
+      'border-radius:0',
+      'overflow:visible',
+    ].join(';');
 
-    function restore() {
-      previewEl.style.transform       = savedTransform;
-      previewEl.style.transformOrigin = 'top center';
-      previewEl.style.marginBottom    = savedMargin;
-      previewEl.style.boxShadow       = '';
-      previewEl.style.borderRadius    = '';
+    // Outer container: fixed at 0,0 with overflow:hidden so html2canvas
+    // cannot capture any pixel that spills beyond the 794px A4 width.
+    const capContainer = document.createElement('div');
+    capContainer.style.cssText = [
+      'position:fixed',
+      'top:0',
+      'left:0',
+      'width:794px',
+      'overflow:hidden',
+      'background:#fff',
+      'z-index:-9999',
+      'pointer-events:none',
+    ].join(';');
+    capContainer.appendChild(clone);
+    document.body.appendChild(capContainer);
+
+    function cleanup() {
+      document.body.removeChild(capContainer);
       btn.innerHTML = orig;
       btn.disabled  = false;
     }
 
+    const contentHeightPx = clone.scrollHeight;
+    const a4HeightMm      = (contentHeightPx / 794) * 210;
+
     html2pdf()
       .set({
-        margin:      [8, 8, 8, 8],
+        margin:      0,
         filename:    filename,
-        image:       { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false, windowWidth: 794 },
-        jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        image:       { type: 'jpeg', quality: 1.0 },
+        html2canvas: {
+          scale:       3,
+          useCORS:     true,
+          logging:     false,
+          windowWidth: 794,
+          width:       794,
+          x:           0,
+          y:           0,
+          scrollX:     0,
+          scrollY:     0,
+        },
+        jsPDF: {
+          unit:        'mm',
+          format:      [210, Math.max(297, a4HeightMm)],
+          orientation: 'portrait',
+          compress:    true,
+        },
       })
-      .from(previewEl)
+      .from(capContainer)
       .save()
       .then(() => {
-        restore();
+        cleanup();
         if (typeof showToast === 'function') showToast('PDF downloaded!', 'success');
       })
       .catch(() => {
-        restore();
+        cleanup();
         if (typeof showToast === 'function') showToast('PDF generation failed.', 'error');
       });
   });

@@ -68,7 +68,7 @@ def _sanitize_resume(data):
     photo = data.get("photo", "") or ""
     if photo and not re.match(r"^data:image/(jpeg|png|webp);base64,", photo):
         photo = ""
-    if len(photo) > 500_000:
+    if len(photo) > 4_000_000:
         photo = ""
 
     return {
