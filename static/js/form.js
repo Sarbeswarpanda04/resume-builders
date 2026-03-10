@@ -19,28 +19,6 @@ const state = {
   currentTemplate: localStorage.getItem('selectedTemplate') || 'template1',
 };
 
-// AI suggestion bank (keyword → skills)
-const AI_SKILLS = {
-  'frontend':        { languages:['HTML','CSS','JavaScript'], tools:['VS Code','Figma'], technologies:['React','Vue','Tailwind CSS'] },
-  'backend':         { languages:['Python','Node.js','Java'], tools:['Postman','Docker'], technologies:['Flask','Express','Spring Boot'] },
-  'fullstack':       { languages:['JavaScript','Python','SQL'], tools:['VS Code','Docker','Git'], technologies:['React','Node.js','Flask','PostgreSQL'] },
-  'data scientist':  { languages:['Python','R','SQL'], tools:['Jupyter','Tableau'], technologies:['TensorFlow','Pandas','Scikit-learn'] },
-  'devops':          { languages:['Bash','Python','YAML'], tools:['Docker','Kubernetes','Terraform'], technologies:['CI/CD','AWS','Linux','Ansible'] },
-  'android':         { languages:['Kotlin','Java','XML'], tools:['Android Studio'], technologies:['Jetpack Compose','Firebase','Retrofit'] },
-  'ios':             { languages:['Swift','Objective-C'], tools:['Xcode'], technologies:['SwiftUI','Core Data','CocoaPods'] },
-  'machine learning':{ languages:['Python'], tools:['Jupyter','Google Colab'], technologies:['TensorFlow','PyTorch','Keras','OpenCV'] },
-};
-
-// AI summary templates
-const AI_SUMMARY = {
-  'frontend':  name => `${name ? name + ' is a' : 'A'} creative Frontend Developer with expertise in building responsive, high-performance web applications using modern JavaScript frameworks and CSS technologies.`,
-  'backend':   name => `${name ? name + ' is an' : 'An'} experienced Backend Developer skilled in designing scalable APIs, managing databases, and architecting robust server-side solutions.`,
-  'fullstack': name => `${name ? name + ' is a' : 'A'} versatile Full Stack Developer with hands-on experience across the entire development stack, from designing intuitive UIs to building powerful backend systems.`,
-  'data scientist': name => `${name ? name + ' is a' : 'A'} data-driven professional with expertise in statistical analysis, machine learning, and deriving actionable insights from complex datasets.`,
-  'devops':    name => `${name ? name + ' is a' : 'A'} skilled DevOps Engineer experienced in automating infrastructure, implementing CI/CD pipelines, and ensuring reliable, scalable deployments.`,
-  'default':   name => `${name ? name + ' is a' : 'A'} dedicated professional with strong technical skills and a passion for delivering high-quality software solutions.`,
-};
-
 // ─── Utilities ───────────────────────────────────────────
 function esc(str) {
   return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -85,6 +63,7 @@ function setupTagInput(inputId, tagsId, stateKey, parentKey) {
         render();
         triggerPreviewUpdate();
         computeScore();
+        scheduleAutoSave();
       });
     });
   }
@@ -100,6 +79,7 @@ function setupTagInput(inputId, tagsId, stateKey, parentKey) {
       render();
       triggerPreviewUpdate();
       computeScore();
+      scheduleAutoSave();
     }
   }
 
@@ -491,33 +471,81 @@ function updateActiveSidebarLink() {
   });
 }
 
-// ─── AI Suggestions ──────────────────────────────────────
-document.getElementById('ai-suggest-btn')?.addEventListener('click', () => {
-  const role = document.getElementById('job-role-input')?.value.trim().toLowerCase() || '';
-  const matchKey = Object.keys(AI_SKILLS).find(k => role.includes(k)) || null;
-
-  if (matchKey) {
-    const skillSet = AI_SKILLS[matchKey];
-    skillSet.languages.forEach(s => { if (!state.skills.languages.includes(s)) state.skills.languages.push(s); });
-    skillSet.tools.forEach(s => { if (!state.skills.tools.includes(s)) state.skills.tools.push(s); });
-    skillSet.technologies.forEach(s => { if (!state.skills.technologies.includes(s)) state.skills.technologies.push(s); });
-    ['lang','tools','tech'].forEach(k => {
-      const fullKey = k === 'lang' ? 'languages' : k === 'tools' ? 'tools' : 'technologies';
-      renderTagList(document.getElementById(`skill-${k}-tags`), state.skills[fullKey],
-        () => { triggerPreviewUpdate(); computeScore(); }, state.skills, fullKey);
-    });
-    // Also fill summary
-    const summaryKey = Object.keys(AI_SUMMARY).find(k => role.includes(k)) || 'default';
-    const summaryEl = document.getElementById('summary');
-    if (summaryEl && !summaryEl.value.trim()) {
-      summaryEl.value = AI_SUMMARY[summaryKey](val('name'));
-      updateSummaryCount();
+// ─── Custom Confirm Modal ────────────────────────────────
+function showConfirm(message) {
+  return new Promise(resolve => {
+    const overlay = document.getElementById('confirm-modal');
+    document.getElementById('confirm-modal-msg').textContent = message;
+    overlay.style.display = 'flex';
+    const ok     = document.getElementById('confirm-modal-ok');
+    const cancel = document.getElementById('confirm-modal-cancel');
+    function cleanup(result) {
+      overlay.style.display = 'none';
+      ok.removeEventListener('click', onOk);
+      cancel.removeEventListener('click', onCancel);
+      overlay.removeEventListener('click', onBg);
+      resolve(result);
     }
-    triggerPreviewUpdate(); computeScore();
-    showToast(`AI suggestions applied for "${matchKey}" role!`, 'success');
-  } else {
-    showToast('No suggestions found. Try: frontend, backend, devops, etc.', 'info');
+    const onOk     = () => cleanup(true);
+    const onCancel = () => cleanup(false);
+    const onBg     = (e) => { if (e.target === overlay) cleanup(false); };
+    ok.addEventListener('click', onOk);
+    cancel.addEventListener('click', onCancel);
+    overlay.addEventListener('click', onBg);
+  });
+}
+
+// ─── AI Suggestions (hardcoded by role) ────────────────
+const ROLE_SUGGESTIONS = {
+  'frontend':         { languages: ['JavaScript','TypeScript','HTML','CSS'], tools: ['VS Code','Git','Webpack','npm','Figma'], technologies: ['React','Vue.js','Tailwind CSS','REST APIs'], summary: 'Creative Frontend Developer skilled in building responsive, high-performance web interfaces using React and modern CSS frameworks. Passionate about clean code and great user experiences.' },
+  'backend':          { languages: ['Python','Java','Node.js','SQL'], tools: ['Git','Docker','Postman','Linux','VS Code'], technologies: ['Flask','Django','Express.js','PostgreSQL','Redis'], summary: 'Backend Developer with strong expertise in designing scalable APIs and database architectures. Experienced in Python and Node.js ecosystems with a focus on performance and reliability.' },
+  'fullstack':        { languages: ['JavaScript','TypeScript','Python','SQL'], tools: ['Git','Docker','VS Code','Postman','npm'], technologies: ['React','Node.js','Express.js','MongoDB','PostgreSQL'], summary: 'Full Stack Developer proficient in both frontend and backend development. Builds end-to-end web applications using the MERN stack with a focus on clean architecture.' },
+  'data scientist':   { languages: ['Python','R','SQL'], tools: ['Jupyter','Git','Tableau','Excel','VS Code'], technologies: ['TensorFlow','Pandas','Scikit-learn','NumPy','Matplotlib'], summary: 'Data Scientist with expertise in machine learning, statistical analysis, and data visualization. Transforms complex datasets into actionable insights to drive business decisions.' },
+  'machine learning': { languages: ['Python','R','SQL'], tools: ['Jupyter','Git','Docker','MLflow'], technologies: ['TensorFlow','PyTorch','Scikit-learn','Keras','OpenCV'], summary: 'Machine Learning Engineer experienced in designing and deploying ML models at scale. Proficient in deep learning frameworks and MLOps pipelines for production-grade AI solutions.' },
+  'devops':           { languages: ['Python','Bash','YAML'], tools: ['Docker','Kubernetes','Jenkins','Git','Terraform'], technologies: ['AWS','CI/CD','Ansible','Nginx','Linux'], summary: 'DevOps Engineer specializing in automating CI/CD pipelines and managing cloud infrastructure. Proven ability to improve deployment frequency and system reliability through IaC.' },
+  'android':          { languages: ['Kotlin','Java','XML'], tools: ['Android Studio','Git','Gradle','Firebase'], technologies: ['Jetpack Compose','Room DB','Retrofit','MVVM','REST APIs'], summary: 'Android Developer with hands-on experience building intuitive mobile applications using Kotlin and Jetpack components. Focused on delivering polished, high-performance Android apps.' },
+  'ios':              { languages: ['Swift','Objective-C'], tools: ['Xcode','Git','TestFlight','CocoaPods'], technologies: ['SwiftUI','UIKit','Core Data','REST APIs','Firebase'], summary: 'iOS Developer experienced in crafting elegant, user-friendly iPhone and iPad applications using Swift and SwiftUI. Committed to Apple design guidelines and App Store best practices.' },
+  'cybersecurity':    { languages: ['Python','Bash','C'], tools: ['Wireshark','Metasploit','Nmap','Burp Suite','Git'], technologies: ['Penetration Testing','SIEM','Firewalls','Linux','Cryptography'], summary: 'Cybersecurity Analyst skilled in threat detection, vulnerability assessment, and incident response. Dedicated to securing systems and data against evolving cyber threats.' },
+  'ui ux':            { languages: ['HTML','CSS','JavaScript'], tools: ['Figma','Adobe XD','Sketch','Zeplin','InVision'], technologies: ['Prototyping','Wireframing','Design Systems','User Research'], summary: 'UI/UX Designer with a passion for creating intuitive and visually appealing digital experiences. Expert in user-centered design and translating business goals into elegant interfaces.' },
+  'cloud':            { languages: ['Python','Bash','YAML'], tools: ['Terraform','Docker','Git','AWS CLI','Kubernetes'], technologies: ['AWS','Azure','GCP','Serverless','Microservices'], summary: 'Cloud Engineer with expertise in designing and managing scalable cloud infrastructure on AWS and Azure. Skilled in automating deployments and optimizing costs through cloud-native solutions.' },
+  'software engineer':{ languages: ['Python','Java','JavaScript','C++'], tools: ['Git','Docker','Jira','VS Code','Linux'], technologies: ['REST APIs','Microservices','CI/CD','SQL','Agile'], summary: 'Software Engineer with a strong foundation in computer science and hands-on experience building reliable, scalable software solutions. Adept at working across the full development lifecycle.' },
+};
+
+function findRoleSuggestion(role) {
+  const r = role.toLowerCase().trim();
+  if (ROLE_SUGGESTIONS[r]) return ROLE_SUGGESTIONS[r];
+  for (const [key, val] of Object.entries(ROLE_SUGGESTIONS)) {
+    if (r.includes(key) || key.includes(r)) return val;
   }
+  return { languages: ['Python','JavaScript','SQL'], tools: ['Git','VS Code','Docker'], technologies: ['REST APIs','Linux','Agile'], summary: `Dedicated ${role} professional with a passion for solving complex problems and delivering high-quality results. Strong communicator and team player with hands-on technical experience.` };
+}
+
+document.getElementById('ai-suggest-btn')?.addEventListener('click', async () => {
+  const role = document.getElementById('job-role-input')?.value.trim() || '';
+  if (!role) { showToast('Enter a job role first.', 'info'); return; }
+
+  const result = findRoleSuggestion(role);
+
+  (result.languages    || []).forEach(s => { if (!state.skills.languages.includes(s))    state.skills.languages.push(s); });
+  (result.tools        || []).forEach(s => { if (!state.skills.tools.includes(s))        state.skills.tools.push(s); });
+  (result.technologies || []).forEach(s => { if (!state.skills.technologies.includes(s)) state.skills.technologies.push(s); });
+  ['lang','tools','tech'].forEach(k => {
+    const fullKey = k === 'lang' ? 'languages' : k === 'tools' ? 'tools' : 'technologies';
+    renderTagList(document.getElementById(`skill-${k}-tags`), state.skills[fullKey],
+      () => { triggerPreviewUpdate(); computeScore(); }, state.skills, fullKey);
+  });
+
+  const summaryEl = document.getElementById('summary');
+  if (summaryEl && result.summary) {
+    if (!summaryEl.value.trim()) {
+      summaryEl.value = result.summary;
+    } else if (await showConfirm('Replace current summary with AI suggestion?')) {
+      summaryEl.value = result.summary;
+    }
+    updateSummaryCount();
+  }
+  triggerPreviewUpdate(); computeScore();
+  showToast('Suggestions applied!', 'success');
 });
 
 // ─── Dark Mode ────────────────────────────────────────────
@@ -589,6 +617,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (photoBox) photoBox.innerHTML = `<img src="${state.photo}" alt="Photo" />`;
         if (photoRemove) photoRemove.style.display = '';
         triggerPreviewUpdate();
+        scheduleAutoSave();
       };
       reader.readAsDataURL(file);
     });
@@ -598,6 +627,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (photoBox) photoBox.innerHTML = '<i class="fas fa-user-circle"></i>';
       photoRemove.style.display = 'none';
       triggerPreviewUpdate();
+      scheduleAutoSave();
     });
   })();
 

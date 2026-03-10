@@ -193,6 +193,112 @@ def delete_resume(resume_id):
 
 # ---------- error handlers ----------
 
+# ---------- hardcoded AI suggestions ----------
+
+_ROLE_DATA = {
+    "frontend": {
+        "languages": ["JavaScript", "TypeScript", "HTML", "CSS"],
+        "tools": ["VS Code", "Git", "Webpack", "npm", "Figma"],
+        "technologies": ["React", "Vue.js", "Tailwind CSS", "REST APIs"],
+        "summary": "Creative Frontend Developer skilled in building responsive, high-performance web interfaces using React and modern CSS frameworks. Passionate about clean code and great user experiences.",
+    },
+    "backend": {
+        "languages": ["Python", "Java", "Node.js", "SQL"],
+        "tools": ["Git", "Docker", "Postman", "Linux", "VS Code"],
+        "technologies": ["Flask", "Django", "Express.js", "PostgreSQL", "Redis"],
+        "summary": "Backend Developer with strong expertise in designing scalable APIs and database architectures. Experienced in Python and Node.js ecosystems with a focus on performance and reliability.",
+    },
+    "fullstack": {
+        "languages": ["JavaScript", "TypeScript", "Python", "SQL"],
+        "tools": ["Git", "Docker", "VS Code", "Postman", "npm"],
+        "technologies": ["React", "Node.js", "Express.js", "MongoDB", "PostgreSQL"],
+        "summary": "Full Stack Developer proficient in both frontend and backend development. Builds end-to-end web applications using the MERN stack with a focus on clean architecture and seamless user experiences.",
+    },
+    "data scientist": {
+        "languages": ["Python", "R", "SQL"],
+        "tools": ["Jupyter", "Git", "Tableau", "Excel", "VS Code"],
+        "technologies": ["TensorFlow", "Pandas", "Scikit-learn", "NumPy", "Matplotlib"],
+        "summary": "Data Scientist with expertise in machine learning, statistical analysis, and data visualization. Transforms complex datasets into actionable insights to drive business decisions.",
+    },
+    "machine learning": {
+        "languages": ["Python", "R", "SQL"],
+        "tools": ["Jupyter", "Git", "Docker", "MLflow"],
+        "technologies": ["TensorFlow", "PyTorch", "Scikit-learn", "Keras", "OpenCV"],
+        "summary": "Machine Learning Engineer experienced in designing and deploying ML models at scale. Proficient in deep learning frameworks and MLOps pipelines for production-grade AI solutions.",
+    },
+    "devops": {
+        "languages": ["Python", "Bash", "YAML"],
+        "tools": ["Docker", "Kubernetes", "Jenkins", "Git", "Terraform"],
+        "technologies": ["AWS", "CI/CD", "Ansible", "Nginx", "Linux"],
+        "summary": "DevOps Engineer specializing in automating CI/CD pipelines and managing cloud infrastructure. Proven ability to improve deployment frequency and system reliability through IaC and containerization.",
+    },
+    "android": {
+        "languages": ["Kotlin", "Java", "XML"],
+        "tools": ["Android Studio", "Git", "Gradle", "Firebase"],
+        "technologies": ["Jetpack Compose", "Room DB", "Retrofit", "MVVM", "REST APIs"],
+        "summary": "Android Developer with hands-on experience building intuitive mobile applications using Kotlin and Jetpack components. Focused on delivering polished, high-performance apps on the Android platform.",
+    },
+    "ios": {
+        "languages": ["Swift", "Objective-C"],
+        "tools": ["Xcode", "Git", "TestFlight", "CocoaPods"],
+        "technologies": ["SwiftUI", "UIKit", "Core Data", "REST APIs", "Firebase"],
+        "summary": "iOS Developer experienced in crafting elegant, user-friendly iPhone and iPad applications using Swift and SwiftUI. Committed to Apple's design guidelines and App Store best practices.",
+    },
+    "cybersecurity": {
+        "languages": ["Python", "Bash", "C"],
+        "tools": ["Wireshark", "Metasploit", "Nmap", "Burp Suite", "Git"],
+        "technologies": ["Penetration Testing", "SIEM", "Firewalls", "Linux", "Cryptography"],
+        "summary": "Cybersecurity Analyst skilled in threat detection, vulnerability assessment, and incident response. Dedicated to securing systems and data against evolving cyber threats.",
+    },
+    "ui ux": {
+        "languages": ["HTML", "CSS", "JavaScript"],
+        "tools": ["Figma", "Adobe XD", "Sketch", "Zeplin", "InVision"],
+        "technologies": ["Prototyping", "Wireframing", "Design Systems", "User Research"],
+        "summary": "UI/UX Designer with a passion for creating intuitive and visually appealing digital experiences. Expert in user-centered design principles, prototyping, and translating business goals into elegant interfaces.",
+    },
+    "cloud": {
+        "languages": ["Python", "Bash", "YAML"],
+        "tools": ["Terraform", "Docker", "Git", "AWS CLI", "Kubernetes"],
+        "technologies": ["AWS", "Azure", "GCP", "Serverless", "Microservices"],
+        "summary": "Cloud Engineer with expertise in designing and managing scalable cloud infrastructure on AWS and Azure. Skilled in automating deployments and optimizing costs through cloud-native solutions.",
+    },
+    "software engineer": {
+        "languages": ["Python", "Java", "JavaScript", "C++"],
+        "tools": ["Git", "Docker", "Jira", "VS Code", "Linux"],
+        "technologies": ["REST APIs", "Microservices", "CI/CD", "SQL", "Agile"],
+        "summary": "Software Engineer with a strong foundation in computer science and hands-on experience building reliable, scalable software solutions. Adept at working across the full development lifecycle in Agile teams.",
+    },
+}
+
+def _find_role(role):
+    role_lower = role.lower().strip()
+    # exact match
+    if role_lower in _ROLE_DATA:
+        return _ROLE_DATA[role_lower]
+    # partial match
+    for key, val in _ROLE_DATA.items():
+        if key in role_lower or role_lower in key:
+            return val
+    return None
+
+
+@app.route("/api/ai_suggest", methods=["POST"])
+def ai_suggest():
+    body = request.get_json(silent=True) or {}
+    role = str(body.get("role", "")).strip()[:200]
+    if not role:
+        abort(400, "role is required")
+    result = _find_role(role)
+    if not result:
+        result = {
+            "languages": ["Python", "JavaScript", "SQL"],
+            "tools": ["Git", "VS Code", "Docker"],
+            "technologies": ["REST APIs", "Linux", "Agile"],
+            "summary": f"Dedicated {role} professional with a passion for solving complex problems and delivering high-quality results. Strong communicator and team player with hands-on technical experience.",
+        }
+    return jsonify(result)
+
+
 @app.errorhandler(400)
 def bad_request(e):
     return jsonify({"error": str(e.description)}), 400
@@ -201,6 +307,11 @@ def bad_request(e):
 @app.errorhandler(404)
 def not_found(e):
     return jsonify({"error": str(e.description)}), 404
+
+
+@app.errorhandler(502)
+def bad_gateway(e):
+    return jsonify({"error": str(e.description)}), 502
 
 
 if __name__ == "__main__":

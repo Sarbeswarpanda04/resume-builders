@@ -99,7 +99,7 @@
       grid.classList.remove('hidden');
       grid.innerHTML = data.map(r => `
         <div class="resume-card" data-id="${r.id}">
-          <div class="card-avatar">${(r.name || '?').charAt(0).toUpperCase()}</div>
+          <div class="card-avatar">${r.photo ? `<img src="${r.photo}" alt="${escHtml(r.name || '')}" />` : (r.name || '?').charAt(0).toUpperCase()}</div>
           <div class="card-body">
             <h3 class="card-name">${escHtml(r.name || 'Unnamed')}</h3>
             <p class="card-email"><i class="fas fa-envelope"></i> ${escHtml(r.email || '—')}</p>

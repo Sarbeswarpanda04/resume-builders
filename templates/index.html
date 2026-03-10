@@ -283,6 +283,17 @@
 <!-- Toast notification -->
 <div id="toast" class="toast hidden"></div>
 
+<!-- Custom Confirm Modal -->
+<div id="confirm-modal" class="confirm-modal-overlay" style="display:none;" role="dialog" aria-modal="true">
+  <div class="confirm-modal-box">
+    <p id="confirm-modal-msg" class="confirm-modal-msg">Replace current summary with AI suggestion?</p>
+    <div class="confirm-modal-actions">
+      <button id="confirm-modal-ok" class="btn btn-primary">OK</button>
+      <button id="confirm-modal-cancel" class="btn btn-outline">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="/static/js/form.js"></script>

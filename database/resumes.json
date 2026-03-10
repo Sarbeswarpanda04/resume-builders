@@ -8,7 +8,7 @@
             "linkedin": "https://www.linkedin.com/in/sarbeswar-panda",
             "github": "https://github.com/Sarbeswarpanda04",
             "portfolio": "https://sarbeswarpanda.me/",
-            "summary": "frontend",
+            "summary": "Creative Frontend Developer skilled in building responsive, high-performance web interfaces using React and modern CSS frameworks. Passionate about clean code and great user experiences.",
             "education": [
                 {
                     "degree": "btech",
@@ -40,17 +40,30 @@
                     "c++",
                     "java",
                     "python",
-                    "mysql"
+                    "mysql",
+                    "JavaScript",
+                    "TypeScript",
+                    "HTML",
+                    "CSS"
                 ],
                 "tools": [
                     "vs code",
                     "antigravity",
-                    "claude"
+                    "claude",
+                    "VS Code",
+                    "Git",
+                    "Webpack",
+                    "npm",
+                    "Figma"
                 ],
                 "technologies": [
                     "node js",
                     "firebase",
-                    "github"
+                    "github",
+                    "React",
+                    "Vue.js",
+                    "Tailwind CSS",
+                    "REST APIs"
                 ]
             },
             "projects": [
@@ -71,6 +84,7 @@
                 "hindi",
                 "odia"
             ],
+            "photo": "",
             "id": 1
         }
     ]
