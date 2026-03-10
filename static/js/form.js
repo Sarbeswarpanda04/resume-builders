@@ -63,7 +63,6 @@ function setupTagInput(inputId, tagsId, stateKey, parentKey) {
         render();
         triggerPreviewUpdate();
         computeScore();
-        scheduleAutoSave();
       });
     });
   }
@@ -79,7 +78,6 @@ function setupTagInput(inputId, tagsId, stateKey, parentKey) {
       render();
       triggerPreviewUpdate();
       computeScore();
-      scheduleAutoSave();
     }
   }
 
@@ -471,30 +469,6 @@ function updateActiveSidebarLink() {
   });
 }
 
-// ─── Custom Confirm Modal ────────────────────────────────
-function showConfirm(message) {
-  return new Promise(resolve => {
-    const overlay = document.getElementById('confirm-modal');
-    document.getElementById('confirm-modal-msg').textContent = message;
-    overlay.style.display = 'flex';
-    const ok     = document.getElementById('confirm-modal-ok');
-    const cancel = document.getElementById('confirm-modal-cancel');
-    function cleanup(result) {
-      overlay.style.display = 'none';
-      ok.removeEventListener('click', onOk);
-      cancel.removeEventListener('click', onCancel);
-      overlay.removeEventListener('click', onBg);
-      resolve(result);
-    }
-    const onOk     = () => cleanup(true);
-    const onCancel = () => cleanup(false);
-    const onBg     = (e) => { if (e.target === overlay) cleanup(false); };
-    ok.addEventListener('click', onOk);
-    cancel.addEventListener('click', onCancel);
-    overlay.addEventListener('click', onBg);
-  });
-}
-
 // ─── AI Suggestions (hardcoded by role) ────────────────
 const ROLE_SUGGESTIONS = {
   'frontend':         { languages: ['JavaScript','TypeScript','HTML','CSS'], tools: ['VS Code','Git','Webpack','npm','Figma'], technologies: ['React','Vue.js','Tailwind CSS','REST APIs'], summary: 'Creative Frontend Developer skilled in building responsive, high-performance web interfaces using React and modern CSS frameworks. Passionate about clean code and great user experiences.' },
@@ -520,7 +494,7 @@ function findRoleSuggestion(role) {
   return { languages: ['Python','JavaScript','SQL'], tools: ['Git','VS Code','Docker'], technologies: ['REST APIs','Linux','Agile'], summary: `Dedicated ${role} professional with a passion for solving complex problems and delivering high-quality results. Strong communicator and team player with hands-on technical experience.` };
 }
 
-document.getElementById('ai-suggest-btn')?.addEventListener('click', async () => {
+document.getElementById('ai-suggest-btn')?.addEventListener('click', () => {
   const role = document.getElementById('job-role-input')?.value.trim() || '';
   if (!role) { showToast('Enter a job role first.', 'info'); return; }
 
@@ -539,7 +513,7 @@ document.getElementById('ai-suggest-btn')?.addEventListener('click', async () =>
   if (summaryEl && result.summary) {
     if (!summaryEl.value.trim()) {
       summaryEl.value = result.summary;
-    } else if (await showConfirm('Replace current summary with AI suggestion?')) {
+    } else if (confirm('Replace current summary with AI suggestion?')) {
       summaryEl.value = result.summary;
     }
     updateSummaryCount();
@@ -617,7 +591,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (photoBox) photoBox.innerHTML = `<img src="${state.photo}" alt="Photo" />`;
         if (photoRemove) photoRemove.style.display = '';
         triggerPreviewUpdate();
-        scheduleAutoSave();
       };
       reader.readAsDataURL(file);
     });
@@ -627,7 +600,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (photoBox) photoBox.innerHTML = '<i class="fas fa-user-circle"></i>';
       photoRemove.style.display = 'none';
       triggerPreviewUpdate();
-      scheduleAutoSave();
     });
   })();
 

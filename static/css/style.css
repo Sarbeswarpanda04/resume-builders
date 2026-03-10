@@ -851,42 +851,6 @@ textarea { resize: vertical; min-height: 80px; }
 .modal-box p { color: var(--text-muted); font-size: .875rem; margin-bottom: 1.4rem; line-height: 1.6; }
 .modal-actions { display: flex; gap: .75rem; justify-content: center; }
 
-/* ---- Confirm Modal ---- */
-.confirm-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.45);
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.confirm-modal-box {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 2rem 2rem 1.5rem;
-  max-width: 360px;
-  width: 90%;
-  box-shadow: 0 8px 40px rgba(0,0,0,.3);
-  animation: slideUp .2s ease;
-}
-.confirm-modal-msg {
-  font-size: .97rem;
-  color: var(--text);
-  margin: 0 0 1.5rem;
-  line-height: 1.5;
-}
-.confirm-modal-actions {
-  display: flex;
-  gap: .75rem;
-  justify-content: flex-end;
-}
-@keyframes slideUp {
-  from { transform: translateY(12px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
-}
-
 /* ---- Toast ---- */
 .toast {
   position: fixed; bottom: 1.75rem; right: 1.75rem;

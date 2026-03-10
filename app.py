@@ -68,7 +68,7 @@ def _sanitize_resume(data):
     photo = data.get("photo", "") or ""
     if photo and not re.match(r"^data:image/(jpeg|png|webp);base64,", photo):
         photo = ""
-    if len(photo) > 4_000_000:
+    if len(photo) > 500_000:
         photo = ""
 
     return {
@@ -315,4 +315,5 @@ def bad_gateway(e):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
