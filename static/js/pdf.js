@@ -8,30 +8,58 @@ document.addEventListener('DOMContentLoaded', () => {
   const downloadBtn = document.getElementById('download-btn');
   if (!downloadBtn) return;
 
-  // Zoom controls
-  let zoomScale = 1;
-  const zoomTarget = document.getElementById('preview-zoom-target');
+  // ── A4 scale-to-fit for the side pane ────────────────────────────────────
+  const wrapper = document.getElementById('preview-zoom-target');
+  const previewEl = document.getElementById('resume-preview');
+  const A4_WIDTH = 794;
+
+  function fitPreviewToPane() {
+    if (!wrapper || !previewEl) return;
+    // Available width = wrapper width minus padding (2 × 1rem = 32px)
+    const availableWidth = wrapper.clientWidth - 32;
+    const scale = Math.min(1, availableWidth / A4_WIDTH);
+    previewEl.style.setProperty('--preview-scale', scale);
+    // Pull the element up so the white-space below the scaled canvas is removed
+    previewEl.style.marginBottom = `${(scale - 1) * 1123}px`;
+    previewEl.style.transform = `scale(${scale})`;
+    previewEl.style.transformOrigin = 'top center';
+  }
+
+  fitPreviewToPane();
+  window.addEventListener('resize', fitPreviewToPane);
+
+  // Zoom controls now adjust scale relatively
+  let zoomOffset = 0;
   document.getElementById('zoom-in')?.addEventListener('click', () => {
-    zoomScale = Math.min(zoomScale + 0.1, 1.6);
-    if (zoomTarget) zoomTarget.style.zoom = zoomScale;
+    zoomOffset = Math.min(zoomOffset + 0.05, 0.3);
+    if (!wrapper || !previewEl) return;
+    const availableWidth = wrapper.clientWidth - 32;
+    const base = Math.min(1, availableWidth / A4_WIDTH);
+    const scale = Math.min(1, base + zoomOffset);
+    previewEl.style.transform = `scale(${scale})`;
+    previewEl.style.marginBottom = `${(scale - 1) * 1123}px`;
   });
   document.getElementById('zoom-out')?.addEventListener('click', () => {
-    zoomScale = Math.max(zoomScale - 0.1, 0.5);
-    if (zoomTarget) zoomTarget.style.zoom = zoomScale;
+    zoomOffset = Math.max(zoomOffset - 0.05, -0.2);
+    if (!wrapper || !previewEl) return;
+    const availableWidth = wrapper.clientWidth - 32;
+    const base = Math.min(1, availableWidth / A4_WIDTH);
+    const scale = Math.max(0.2, base + zoomOffset);
+    previewEl.style.transform = `scale(${scale})`;
+    previewEl.style.marginBottom = `${(scale - 1) * 1123}px`;
   });
 
   downloadBtn.addEventListener('click', () => {
-    const el = document.getElementById('resume-preview');
-    if (!el) return;
+    if (!previewEl) return;
 
     // Guard: nothing to export yet
-    const placeholder = el.querySelector('.preview-placeholder');
+    const placeholder = previewEl.querySelector('.preview-placeholder');
     if (placeholder) {
       alert('Please fill in your resume details before downloading.');
       return;
     }
 
-    const nameEl = el.querySelector('.preview-name');
+    const nameEl = previewEl.querySelector('.preview-name');
     const filename = nameEl?.textContent
       ? `${nameEl.textContent.trim().replace(/\s+/g, '_')}_Resume.pdf`
       : 'Resume.pdf';
@@ -41,20 +69,23 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating…';
     btn.disabled = true;
 
-    // Override styles on the element itself so html2canvas can see it in-place.
-    // html2canvas cannot render off-screen (negative position) clones.
-    const savedStyle = el.getAttribute('style') || '';
-    el.style.width = '794px';
-    el.style.maxWidth = 'none';
-    el.style.boxShadow = 'none';
-    el.style.borderRadius = '0';
-    el.style.zoom = '1';
+    // Temporarily render at full A4 size for html2canvas
+    const savedTransform = previewEl.style.transform;
+    const savedMargin    = previewEl.style.marginBottom;
+    previewEl.style.transform    = 'scale(1)';
+    previewEl.style.transformOrigin = 'top left';
+    previewEl.style.marginBottom = '0';
+    previewEl.style.boxShadow    = 'none';
+    previewEl.style.borderRadius = '0';
 
     function restore() {
-      if (savedStyle) el.setAttribute('style', savedStyle);
-      else el.removeAttribute('style');
+      previewEl.style.transform       = savedTransform;
+      previewEl.style.transformOrigin = 'top center';
+      previewEl.style.marginBottom    = savedMargin;
+      previewEl.style.boxShadow       = '';
+      previewEl.style.borderRadius    = '';
       btn.innerHTML = orig;
-      btn.disabled = false;
+      btn.disabled  = false;
     }
 
     html2pdf()
@@ -65,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         html2canvas: { scale: 2, useCORS: true, logging: false, windowWidth: 794 },
         jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
       })
-      .from(el)
+      .from(previewEl)
       .save()
       .then(() => {
         restore();
