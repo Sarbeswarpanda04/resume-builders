@@ -21,8 +21,8 @@
   --text-muted:     #6B7280;
   --text-light:     #9CA3AF;
 
-  --sidebar-w:      220px;
-  --preview-w:      400px;
+  --sidebar-w:      200px;
+  --preview-w:      560px;
   --navbar-h:       60px;
   --radius:         10px;
   --shadow:         0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
@@ -80,6 +80,7 @@ img { max-width: 100%; }
   color: var(--primary);
 }
 .nav-brand i { font-size: 1.3rem; }
+.nav-logo { height: 2rem; width: 2rem; object-fit: contain; }
 .nav-actions { display: flex; align-items: center; gap: .6rem; }
 
 /* ---- Buttons ---- */
