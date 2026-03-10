@@ -112,6 +112,24 @@
             <label for="portfolio">Portfolio</label>
             <input type="text" id="portfolio" name="portfolio" placeholder="yourportfolio.com" maxlength="200" />
           </div>
+          <div class="form-group full-width">
+            <label>Profile Photo <span style="font-weight:400;color:var(--text-muted);font-size:.8rem;">(Optional)</span></label>
+            <div class="photo-upload-widget">
+              <div class="photo-preview-box" id="photo-preview-box">
+                <i class="fas fa-user-circle"></i>
+              </div>
+              <div class="photo-upload-controls">
+                <label for="photo-upload" class="btn btn-outline btn-sm photo-upload-label">
+                  <i class="fas fa-upload"></i> Upload Photo
+                </label>
+                <input type="file" id="photo-upload" accept="image/jpeg,image/png,image/webp" style="display:none" />
+                <button type="button" id="photo-remove-btn" class="btn btn-sm" style="display:none;color:#EF4444;border-color:#EF4444;">
+                  <i class="fas fa-trash"></i> Remove
+                </button>
+                <p class="photo-hint">JPG / PNG / WebP &middot; max 2 MB &middot; shown in your resume header</p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

@@ -65,6 +65,12 @@ def _sanitize_resume(data):
     if email and not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
         email = ""
 
+    photo = data.get("photo", "") or ""
+    if photo and not re.match(r"^data:image/(jpeg|png|webp);base64,", photo):
+        photo = ""
+    if len(photo) > 500_000:
+        photo = ""
+
     return {
         "name":        s("name"),
         "email":       email,
@@ -91,6 +97,7 @@ def _sanitize_resume(data):
                              ["name", "description", "technologies", "github"]),
         "certifications": s_list("certifications"),
         "languages":     s_list("languages"),
+        "photo":         photo,
     }
 
 

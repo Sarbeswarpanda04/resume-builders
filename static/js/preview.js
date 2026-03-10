@@ -42,6 +42,7 @@ function renderResumePreview(data, container) {
 
   // Header
   html += `<div class="preview-header-section">`;
+  html += `<div class="preview-header-info">`;
   html += `<div class="preview-name">${esc(data.name || 'Your Name')}</div>`;
   if (hasPersonal || hasLinks) {
     html += `<div class="preview-contact">`;
@@ -56,6 +57,10 @@ function renderResumePreview(data, container) {
       if (data.portfolio) html += `<a href="#"><i class="fas fa-globe"></i>${esc(data.portfolio)}</a>`;
       html += `</div>`;
     }
+  }
+  html += `</div>`; // /preview-header-info
+  if (data.photo) {
+    html += `<img class="preview-photo" src="${data.photo}" alt="Profile Photo" />`;
   }
   html += `</div>`;
 

@@ -11,9 +11,9 @@
   background: linear-gradient(135deg, #0F766E, #0D9488);
   color: #fff;
   padding: 1.4rem 1.6rem;
-  display: flex;
-  flex-direction: column;
-  gap: .4rem;
+}
+.resume-preview.template3 .preview-photo {
+  border-color: rgba(255,255,255,0.5);
 }
 .resume-preview.template3 .preview-name { font-size: 1.4rem; font-weight: 700; }
 .resume-preview.template3 .preview-contact { font-size: .7rem; opacity: .9; gap: .3rem .75rem; }

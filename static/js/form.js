@@ -15,6 +15,7 @@ const state = {
   experienceCount: 0,
   projectCount: 0,
   editId: null,
+  photo: null,
   currentTemplate: localStorage.getItem('selectedTemplate') || 'template1',
 };
 
@@ -270,6 +271,7 @@ function collectFormData() {
     linkedin:       val('linkedin'),
     github:         val('github'),
     portfolio:      val('portfolio'),
+    photo:          state.photo,
     summary:        val('summary'),
     education,
     experience,
@@ -401,6 +403,14 @@ async function loadResumeForEdit(id) {
       if (el) el.value = data[f] || '';
     });
     updateSummaryCount();
+    // Photo
+    state.photo = data.photo || null;
+    const _editPhotoBox    = document.getElementById('photo-preview-box');
+    const _editPhotoRemove = document.getElementById('photo-remove-btn');
+    if (state.photo && _editPhotoBox) {
+      _editPhotoBox.innerHTML = `<img src="${state.photo}" alt="Photo" />`;
+      if (_editPhotoRemove) _editPhotoRemove.style.display = '';
+    }
 
     // Education
     (data.education || []).forEach(e => addEducation(e));
@@ -559,6 +569,38 @@ document.addEventListener('DOMContentLoaded', () => {
   // Summary char count
   document.getElementById('summary')?.addEventListener('input', updateSummaryCount);
 
+  // Photo upload
+  (function initPhotoUpload() {
+    const photoInput  = document.getElementById('photo-upload');
+    const photoBox    = document.getElementById('photo-preview-box');
+    const photoRemove = document.getElementById('photo-remove-btn');
+    if (!photoInput) return;
+    photoInput.addEventListener('change', () => {
+      const file = photoInput.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) {
+        showToast('Photo must be under 2MB.', 'error');
+        photoInput.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = e => {
+        state.photo = e.target.result;
+        if (photoBox) photoBox.innerHTML = `<img src="${state.photo}" alt="Photo" />`;
+        if (photoRemove) photoRemove.style.display = '';
+        triggerPreviewUpdate();
+      };
+      reader.readAsDataURL(file);
+    });
+    photoRemove?.addEventListener('click', () => {
+      state.photo = null;
+      photoInput.value = '';
+      if (photoBox) photoBox.innerHTML = '<i class="fas fa-user-circle"></i>';
+      photoRemove.style.display = 'none';
+      triggerPreviewUpdate();
+    });
+  })();
+
   // Save button
   document.getElementById('save-btn')?.addEventListener('click', saveResume);
 
@@ -568,6 +610,11 @@ document.addEventListener('DOMContentLoaded', () => {
     state.certifications = [];
     state.languages = [];
     state.editId = null;
+    state.photo = null;
+    const _clearPhotoBox    = document.getElementById('photo-preview-box');
+    const _clearPhotoRemove = document.getElementById('photo-remove-btn');
+    if (_clearPhotoBox) _clearPhotoBox.innerHTML = '<i class="fas fa-user-circle"></i>';
+    if (_clearPhotoRemove) _clearPhotoRemove.style.display = 'none';
     ['skill-lang-tags','skill-tools-tags','skill-tech-tags','cert-tags','lang-tags'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.innerHTML = '';
@@ -623,6 +670,13 @@ function loadFromObject(data) {
     if (el) el.value = data[f] || '';
   });
   updateSummaryCount();
+  if (data.photo) {
+    state.photo = data.photo;
+    const _draftPhotoBox    = document.getElementById('photo-preview-box');
+    const _draftPhotoRemove = document.getElementById('photo-remove-btn');
+    if (_draftPhotoBox) _draftPhotoBox.innerHTML = `<img src="${data.photo}" alt="Photo" />`;
+    if (_draftPhotoRemove) _draftPhotoRemove.style.display = '';
+  }
   (data.education || []).forEach(e => addEducation(e));
   (data.experience || []).forEach(e => addExperience(e));
   if (data.skills && typeof data.skills === 'object') {
