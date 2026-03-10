@@ -36,6 +36,13 @@
 
 <div id="toast" class="toast hidden"></div>
 
+<!-- Mobile template bar (hidden on desktop via .template-quick { display:none } at ≤768px is repurposed; this bar is shown only on mobile) -->
+<div class="mobile-tpl-bar">
+  <button class="tpl-quick-btn active" data-template="template1">Professional</button>
+  <button class="tpl-quick-btn" data-template="template2">Minimal</button>
+  <button class="tpl-quick-btn" data-template="template3">Modern</button>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="/static/js/preview.js"></script>
 <script>
@@ -94,6 +101,26 @@
     t.classList.remove('hidden');
     setTimeout(() => t.classList.add('hidden'), 3000);
   }
+
+  // Scale A4 resume to fit mobile viewport width
+  function scaleResumeMobile() {
+    const el = document.getElementById('resume-preview');
+    if (!el) return;
+    const vw = window.innerWidth;
+    if (vw < 830) {
+      const scale = (vw - 16) / 794;
+      el.style.transform      = `scale(${scale})`;
+      el.style.transformOrigin = 'top center';
+      el.style.marginBottom   = `${(scale - 1) * el.scrollHeight}px`;
+    } else {
+      el.style.transform      = '';
+      el.style.marginBottom   = '';
+    }
+  }
+  scaleResumeMobile();
+  window.addEventListener('resize', scaleResumeMobile);
+  // Re-scale after resume data renders
+  document.addEventListener('resumeRendered', scaleResumeMobile);
 </script>
 </body>
 </html>

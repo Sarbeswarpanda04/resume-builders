@@ -13,6 +13,10 @@
 
 <!-- Top Navbar -->
 <nav class="navbar">
+  <!-- Hamburger: visible only on mobile -->
+  <button id="hamburger-btn" class="btn btn-icon hamburger-btn" title="Menu" aria-label="Open navigation">
+    <i class="fas fa-bars"></i>
+  </button>
   <div class="nav-brand">
     <img src="/static/images/logo.png" alt="Smart Resume Builder Logo" class="nav-logo" />
     <span>Smart Resume Builder</span>
@@ -24,6 +28,9 @@
     </button>
   </div>
 </nav>
+
+<!-- Mobile sidebar overlay -->
+<div id="sidebar-overlay" class="sidebar-overlay"></div>
 
 <div class="app-container">
   <!-- Sidebar -->
@@ -266,6 +273,10 @@
       <div class="preview-controls">
         <button id="zoom-in" class="btn btn-icon" title="Zoom In"><i class="fas fa-search-plus"></i></button>
         <button id="zoom-out" class="btn btn-icon" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+        <!-- Close button only shown on mobile -->
+        <button id="mobile-preview-close" class="btn btn-icon mobile-only" title="Close preview" aria-label="Close preview">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
     </div>
     <div class="preview-wrapper" id="preview-zoom-target">
@@ -280,8 +291,53 @@
   </aside>
 </div>
 
+<!-- Mobile Preview FAB -->
+<button id="mobile-preview-fab" class="mobile-preview-fab" aria-label="Open live preview">
+  <i class="fas fa-eye"></i>
+  <span>Preview</span>
+</button>
+
 <!-- Toast notification -->
 <div id="toast" class="toast hidden"></div>
+
+<!-- Mobile interactions -->
+<script>
+(function () {
+  var hamburgerBtn   = document.getElementById('hamburger-btn');
+  var sidebar        = document.querySelector('.sidebar');
+  var overlay        = document.getElementById('sidebar-overlay');
+  var previewPane    = document.querySelector('.preview-pane');
+  var previewFab     = document.getElementById('mobile-preview-fab');
+  var previewClose   = document.getElementById('mobile-preview-close');
+
+  function openSidebar()  { sidebar?.classList.add('mobile-open');    overlay?.classList.add('show'); }
+  function closeSidebar() { sidebar?.classList.remove('mobile-open'); overlay?.classList.remove('show'); }
+
+  hamburgerBtn?.addEventListener('click', function () {
+    sidebar?.classList.contains('mobile-open') ? closeSidebar() : openSidebar();
+  });
+  overlay?.addEventListener('click', closeSidebar);
+
+  // Close sidebar when a section link is tapped on mobile
+  document.querySelectorAll('.sidebar-link').forEach(function (link) {
+    link.addEventListener('click', function () {
+      if (window.innerWidth <= 768) closeSidebar();
+    });
+  });
+
+  // Mobile Preview FAB: open preview pane
+  previewFab?.addEventListener('click', function () {
+    previewPane?.classList.add('mobile-open');
+    if (previewFab) previewFab.style.display = 'none';
+  });
+
+  // Close preview pane on mobile
+  previewClose?.addEventListener('click', function () {
+    previewPane?.classList.remove('mobile-open');
+    if (window.innerWidth <= 768 && previewFab) previewFab.style.display = 'flex';
+  });
+})();
+</script>
 
 <!-- Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
