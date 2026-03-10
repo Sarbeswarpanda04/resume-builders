@@ -1,7 +1,7 @@
 /* Template 3 — Modern (teal accent, two-column) */
 .resume-preview.template3 {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 200px 1fr;
   grid-template-rows: auto 1fr;
   min-height: 500px;
   font-family: 'Inter', sans-serif;
@@ -18,14 +18,20 @@
 .resume-preview.template3 .preview-name { font-size: 1.4rem; font-weight: 700; }
 .resume-preview.template3 .preview-contact { font-size: .7rem; opacity: .9; gap: .3rem .75rem; }
 .resume-preview.template3 .preview-sidebar-col {
+  grid-column: 1;
+  grid-row: 2;
   background: #F0FDFA;
   padding: 1rem;
   border-right: 1px solid #CCFBF1;
+  min-height: 100%;
 }
 .resume-preview.template3 .preview-body {
-  padding: 1rem 1.2rem;
   grid-column: 2;
+  grid-row: 2;
+  padding: 1rem 1.2rem;
 }
+/* Hide the duplicated skills/certs/langs in body when sidebar is visible */
+.resume-preview.template3 .preview-body .preview-body-sidebar-dup { display: none; }
 .resume-preview.template3 .preview-section-title {
   color: #0F766E;
   border-bottom-color: #0D9488;

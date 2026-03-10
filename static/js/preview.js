@@ -59,7 +59,27 @@ function renderResumePreview(data, container) {
   }
   html += `</div>`;
 
-  // Body
+  // ── Sidebar (always rendered; template3 CSS shows it, others hide it) ──
+  let sidebarHtml = '';
+
+  if (allSkills.length > 0) {
+    const tags = allSkills.map(s => `<span class="preview-skill-tag">${esc(s)}</span>`).join('');
+    sidebarHtml += sectionCls('Skills', `<div class="preview-skills">${tags}</div>`);
+  }
+  if (hasCerts) {
+    const items = (data.certifications || []).map(c =>
+      `<div class="preview-item"><span class="preview-item-title"><i class="fas fa-certificate" style="color:#F59E0B;margin-right:.3rem"></i>${esc(c)}</span></div>`
+    ).join('');
+    sidebarHtml += sectionCls('Certifications', items);
+  }
+  if (hasLangs) {
+    const tags = (data.languages || []).map(l => `<span class="preview-skill-tag">${esc(l)}</span>`).join('');
+    sidebarHtml += sectionCls('Languages', `<div class="preview-skills">${tags}</div>`);
+  }
+
+  html += `<div class="preview-sidebar-col">${sidebarHtml}</div>`;
+
+  // ── Main body ──
   html += `<div class="preview-body">`;
 
   // Summary
@@ -102,10 +122,10 @@ function renderResumePreview(data, container) {
     html += section('Experience', inner);
   }
 
-  // Skills
+  // Skills — shown in body for template1/2; template3 CSS hides this via .preview-body-sidebar-dup
   if (allSkills.length > 0) {
     const tags = allSkills.map(s => `<span class="preview-skill-tag">${esc(s)}</span>`).join('');
-    html += section('Skills', `<div class="preview-skills">${tags}</div>`);
+    html += sectionCls('Skills', `<div class="preview-skills">${tags}</div>`, 'preview-body-sidebar-dup');
   }
 
   // Projects
@@ -117,7 +137,7 @@ function renderResumePreview(data, container) {
         <div class="preview-item">
           <div class="preview-item-header">
             <span class="preview-item-title">${esc(p.name)}</span>
-            ${p.github ? `<a href="#" style="font-size:.7rem;color:var(--primary, #4F46E5)"><i class="fab fa-github"></i> GitHub</a>` : ''}
+            ${p.github ? `<a href="#" style="font-size:.7rem;color:var(--primary,#4F46E5)"><i class="fab fa-github"></i> GitHub</a>` : ''}
           </div>
           ${p.technologies ? `<div class="preview-item-sub">${esc(p.technologies)}</div>` : ''}
           ${p.description  ? `<div class="preview-item-desc">${esc(p.description)}</div>`  : ''}
@@ -126,18 +146,18 @@ function renderResumePreview(data, container) {
     html += section('Projects', inner);
   }
 
-  // Certifications
+  // Certifications — shown in body for template1/2; hidden in template3
   if (hasCerts) {
     const items = (data.certifications || []).map(c =>
       `<div class="preview-item"><span class="preview-item-title"><i class="fas fa-certificate" style="color:#F59E0B;margin-right:.3rem"></i>${esc(c)}</span></div>`
     ).join('');
-    html += section('Certifications', items);
+    html += sectionCls('Certifications', items, 'preview-body-sidebar-dup');
   }
 
-  // Languages
+  // Languages — shown in body for template1/2; hidden in template3
   if (hasLangs) {
     const tags = (data.languages || []).map(l => `<span class="preview-skill-tag">${esc(l)}</span>`).join('');
-    html += section('Languages', `<div class="preview-skills">${tags}</div>`);
+    html += sectionCls('Languages', `<div class="preview-skills">${tags}</div>`, 'preview-body-sidebar-dup');
   }
 
   html += `</div>`; // /preview-body
@@ -147,6 +167,14 @@ function renderResumePreview(data, container) {
 function section(title, content) {
   return `
     <div class="preview-section">
+      <div class="preview-section-title">${esc(title)}</div>
+      ${content}
+    </div>`;
+}
+
+function sectionCls(title, content, extraClass = '') {
+  return `
+    <div class="preview-section${extraClass ? ' ' + extraClass : ''}">
       <div class="preview-section-title">${esc(title)}</div>
       ${content}
     </div>`;
