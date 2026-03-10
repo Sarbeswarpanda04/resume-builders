@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Smart Resume Builder</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body class="light-mode">
+
+<nav class="navbar">
+  <div class="nav-brand">
+    <i class="fas fa-file-alt"></i>
+    <span>Smart Resume Builder</span>
+  </div>
+  <div class="nav-actions">
+    <a href="/" class="btn btn-primary"><i class="fas fa-plus"></i> New Resume</a>
+    <button id="dark-mode-toggle" class="btn btn-icon" title="Toggle dark mode">
+      <i class="fas fa-moon"></i>
+    </button>
+  </div>
+</nav>
+
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <h1><i class="fas fa-th-large"></i> My Resumes</h1>
+    <p class="dashboard-subtitle">Manage, edit and download your saved resumes</p>
+  </div>
+
+  <div id="loading-state" class="dashboard-loading">
+    <i class="fas fa-spinner fa-spin"></i> Loading resumes…
+  </div>
+
+  <div id="empty-state" class="dashboard-empty hidden">
+    <i class="fas fa-inbox"></i>
+    <h2>No resumes yet</h2>
+    <p>Create your first resume to get started.</p>
+    <a href="/" class="btn btn-primary"><i class="fas fa-plus"></i> Create Resume</a>
+  </div>
+
+  <div id="resume-grid" class="resume-grid hidden"></div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-modal" class="modal hidden">
+  <div class="modal-backdrop"></div>
+  <div class="modal-box">
+    <i class="fas fa-exclamation-triangle modal-icon danger"></i>
+    <h3>Delete Resume?</h3>
+    <p>This action cannot be undone.</p>
+    <div class="modal-actions">
+      <button id="confirm-delete" class="btn btn-danger">Delete</button>
+      <button id="cancel-delete" class="btn btn-outline">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script>
+  // ---------- Dark mode (shared) ----------
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'dark') document.body.classList.replace('light-mode', 'dark-mode');
+  document.getElementById('dark-mode-toggle').addEventListener('click', () => {
+    const isDark = document.body.classList.contains('dark-mode');
+    document.body.classList.replace(isDark ? 'dark-mode' : 'light-mode', isDark ? 'light-mode' : 'dark-mode');
+    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    document.getElementById('dark-mode-toggle').querySelector('i').className = isDark ? 'fas fa-moon' : 'fas fa-sun';
+  });
+  if (savedTheme === 'dark') document.getElementById('dark-mode-toggle').querySelector('i').className = 'fas fa-sun';
+
+  // ---------- Toast ----------
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type}`;
+    t.classList.remove('hidden');
+    setTimeout(() => t.classList.add('hidden'), 3000);
+  }
+
+  // ---------- Load Resumes ----------
+  async function loadResumes() {
+    // Reset state before every fetch
+    document.getElementById('loading-state').classList.remove('hidden');
+    document.getElementById('empty-state').classList.add('hidden');
+    const grid = document.getElementById('resume-grid');
+    grid.classList.add('hidden');
+    grid.innerHTML = '';
+    try {
+      const res = await fetch('/resumes');
+      const data = await res.json();
+      document.getElementById('loading-state').classList.add('hidden');
+      if (!data.length) {
+        document.getElementById('empty-state').classList.remove('hidden');
+        return;
+      }
+      grid.classList.remove('hidden');
+      grid.innerHTML = data.map(r => `
+        <div class="resume-card" data-id="${r.id}">
+          <div class="card-avatar">${(r.name || '?').charAt(0).toUpperCase()}</div>
+          <div class="card-body">
+            <h3 class="card-name">${escHtml(r.name || 'Unnamed')}</h3>
+            <p class="card-email"><i class="fas fa-envelope"></i> ${escHtml(r.email || '—')}</p>
+            <p class="card-phone"><i class="fas fa-phone"></i> ${escHtml(r.phone || '—')}</p>
+            <p class="card-summary">${escHtml((r.summary || '').substring(0, 80))}${r.summary && r.summary.length > 80 ? '…' : ''}</p>
+          </div>
+          <div class="card-actions">
+            <a href="/preview/${r.id}" class="btn btn-sm btn-outline" title="Preview">
+              <i class="fas fa-eye"></i> Preview
+            </a>
+            <button class="btn btn-sm btn-primary edit-btn" data-id="${r.id}" title="Edit">
+              <i class="fas fa-edit"></i> Edit
+            </button>
+            <button class="btn btn-sm btn-danger delete-btn" data-id="${r.id}" title="Delete">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      grid.querySelectorAll('.edit-btn').forEach(btn =>
+        btn.addEventListener('click', () => {
+          window.location.href = `/?edit=${btn.dataset.id}`;
+        })
+      );
+
+      grid.querySelectorAll('.delete-btn').forEach(btn =>
+        btn.addEventListener('click', () => openDeleteModal(parseInt(btn.dataset.id)))
+      );
+    } catch {
+      document.getElementById('loading-state').textContent = 'Failed to load resumes.';
+    }
+  }
+
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ---------- Delete Modal ----------
+  let pendingDeleteId = null;
+  function openDeleteModal(id) {
+    pendingDeleteId = id;
+    document.getElementById('delete-modal').classList.remove('hidden');
+  }
+  document.getElementById('cancel-delete').addEventListener('click', () => {
+    document.getElementById('delete-modal').classList.add('hidden');
+    pendingDeleteId = null;
+  });
+  document.querySelector('.modal-backdrop').addEventListener('click', () => {
+    document.getElementById('delete-modal').classList.add('hidden');
+    pendingDeleteId = null;
+  });
+  document.getElementById('confirm-delete').addEventListener('click', async () => {
+    if (!pendingDeleteId) return;
+    document.getElementById('delete-modal').classList.add('hidden');
+    try {
+      const res = await fetch(`/delete/${pendingDeleteId}`, { method: 'DELETE' });
+      if (res.ok) {
+        showToast('Resume deleted.', 'success');
+        loadResumes();
+      } else {
+        showToast('Failed to delete.', 'error');
+      }
+    } catch {
+      showToast('Network error.', 'error');
+    }
+    pendingDeleteId = null;
+  });
+
+  loadResumes();
+</script>
+</body>
+</html>

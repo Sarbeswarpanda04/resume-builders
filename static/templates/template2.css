@@ -1,0 +1,40 @@
+/* Template 2 — Minimal (clean black & white) */
+.resume-preview.template2 {
+  font-family: 'Georgia', serif;
+  color: #1a1a1a;
+}
+.resume-preview.template2 .preview-header-section {
+  background: #1a1a1a;
+  color: #fff;
+  padding: 1.8rem 2rem;
+  text-align: center;
+}
+.resume-preview.template2 .preview-name {
+  font-size: 1.7rem;
+  font-weight: 400;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.resume-preview.template2 .preview-contact {
+  justify-content: center;
+  margin-top: .6rem;
+  font-size: .7rem;
+  opacity: .85;
+}
+.resume-preview.template2 .preview-body { padding: 1.2rem 2rem; }
+.resume-preview.template2 .preview-section-title {
+  color: #1a1a1a;
+  border-bottom: 1px solid #1a1a1a;
+  border-bottom-width: 1px;
+  font-size: .68rem;
+  text-align: left;
+  letter-spacing: .12em;
+}
+.resume-preview.template2 .preview-item-title { font-style: italic; font-weight: 600; }
+.resume-preview.template2 .preview-skill-tag {
+  background: #f0f0f0;
+  color: #1a1a1a;
+  border: 1px solid #ccc;
+}
+.resume-preview.template2 .preview-body .preview-links a { color: #333; }
+.resume-preview.template2 .preview-summary { font-style: italic; color: #333; }

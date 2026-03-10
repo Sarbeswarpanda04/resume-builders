@@ -1,0 +1,77 @@
+{
+    "resumes": [
+        {
+            "name": "Sarbeswar panda",
+            "email": "sarbeswarpanda143@gmail.com",
+            "phone": "+918260916384",
+            "address": "At-kendupalli, Po-barabati, Via-khandapada",
+            "linkedin": "https://www.linkedin.com/in/sarbeswar-panda",
+            "github": "https://github.com/Sarbeswarpanda04",
+            "portfolio": "https://sarbeswarpanda.me/",
+            "summary": "frontend",
+            "education": [
+                {
+                    "degree": "btech",
+                    "college": "GIFT",
+                    "year": "2023-2027",
+                    "grade": "8.5"
+                },
+                {
+                    "degree": "plus 2",
+                    "college": "Nayagarh Auto College",
+                    "year": "2021-2023",
+                    "grade": "83"
+                }
+            ],
+            "experience": [
+                {
+                    "company": "Ardent computech pvt ltd",
+                    "role": "sde II",
+                    "duration": "jan 2022 - feb 2025",
+                    "description": "i worked on several problem solving in google  and projects devlopment"
+                }
+            ],
+            "skills": {
+                "languages": [
+                    "html",
+                    "css",
+                    "js",
+                    "c",
+                    "c++",
+                    "java",
+                    "python",
+                    "mysql"
+                ],
+                "tools": [
+                    "vs code",
+                    "antigravity",
+                    "claude"
+                ],
+                "technologies": [
+                    "node js",
+                    "firebase",
+                    "github"
+                ]
+            },
+            "projects": [
+                {
+                    "name": "portfolio website",
+                    "description": "The app is running successfully. The favicon 404 is harmless (no favicon file needed), and the \"development server\" warning is expected for Flask dev mode. Let me verify the API endpoint quickly:",
+                    "technologies": "react node js python",
+                    "github": "https://github.com/Sarbeswarpanda04"
+                }
+            ],
+            "certifications": [
+                "microsoft power point",
+                "google engineer role",
+                "generative ai"
+            ],
+            "languages": [
+                "english",
+                "hindi",
+                "odia"
+            ],
+            "id": 1
+        }
+    ]
+}

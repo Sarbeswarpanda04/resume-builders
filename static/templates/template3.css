@@ -1,0 +1,38 @@
+/* Template 3 — Modern (teal accent, two-column) */
+.resume-preview.template3 {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  grid-template-rows: auto 1fr;
+  min-height: 500px;
+  font-family: 'Inter', sans-serif;
+}
+.resume-preview.template3 .preview-header-section {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, #0F766E, #0D9488);
+  color: #fff;
+  padding: 1.4rem 1.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+.resume-preview.template3 .preview-name { font-size: 1.4rem; font-weight: 700; }
+.resume-preview.template3 .preview-contact { font-size: .7rem; opacity: .9; gap: .3rem .75rem; }
+.resume-preview.template3 .preview-sidebar-col {
+  background: #F0FDFA;
+  padding: 1rem;
+  border-right: 1px solid #CCFBF1;
+}
+.resume-preview.template3 .preview-body {
+  padding: 1rem 1.2rem;
+  grid-column: 2;
+}
+.resume-preview.template3 .preview-section-title {
+  color: #0F766E;
+  border-bottom-color: #0D9488;
+}
+.resume-preview.template3 .preview-skill-tag {
+  background: rgba(13,148,136,.12);
+  color: #0F766E;
+}
+.resume-preview.template3 .preview-body .preview-links a { color: #0F766E; }
+.resume-preview.template3 .preview-summary { color: #374151; }

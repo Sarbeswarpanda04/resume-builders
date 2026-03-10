@@ -1,0 +1,17 @@
+/* Template 1 — Professional (Indigo header) */
+.resume-preview.template1 .preview-header-section {
+  background: #4F46E5;
+  color: #fff;
+  padding: 1.4rem 1.6rem;
+}
+.resume-preview.template1 .preview-name { font-size: 1.5rem; font-weight: 700; letter-spacing: -.01em; }
+.resume-preview.template1 .preview-section-title {
+  color: #4F46E5;
+  border-bottom-color: #4F46E5;
+  font-size: .7rem;
+}
+.resume-preview.template1 .preview-skill-tag {
+  background: rgba(79,70,229,.1);
+  color: #4F46E5;
+}
+.resume-preview.template1 .preview-body .preview-links a { color: #4F46E5; }

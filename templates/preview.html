@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resume Preview — Smart Resume Builder</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="stylesheet" id="template-css" href="/static/templates/template1.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body class="light-mode">
+
+<nav class="navbar">
+  <div class="nav-brand">
+    <i class="fas fa-file-alt"></i>
+    <span>Smart Resume Builder</span>
+  </div>
+  <div class="nav-actions">
+    <a href="/dashboard" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Dashboard</a>
+    <div class="template-quick">
+      <button class="tpl-quick-btn active" data-template="template1">Professional</button>
+      <button class="tpl-quick-btn" data-template="template2">Minimal</button>
+      <button class="tpl-quick-btn" data-template="template3">Modern</button>
+    </div>
+    <button id="download-pdf-btn" class="btn btn-success"><i class="fas fa-download"></i> Download PDF</button>
+    <button id="dark-mode-toggle" class="btn btn-icon"><i class="fas fa-moon"></i></button>
+  </div>
+</nav>
+
+<div class="preview-page-container">
+  <div id="resume-preview" class="resume-preview template1">
+    <div class="preview-placeholder"><i class="fas fa-spinner fa-spin"></i><p>Loading resume…</p></div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="/static/js/preview.js"></script>
+<script>
+  // Dark mode
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'dark') document.body.classList.replace('light-mode', 'dark-mode');
+  document.getElementById('dark-mode-toggle').addEventListener('click', () => {
+    const isDark = document.body.classList.contains('dark-mode');
+    document.body.classList.replace(isDark ? 'dark-mode' : 'light-mode', isDark ? 'light-mode' : 'dark-mode');
+    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    document.getElementById('dark-mode-toggle').querySelector('i').className = isDark ? 'fas fa-moon' : 'fas fa-sun';
+  });
+  if (savedTheme === 'dark') document.getElementById('dark-mode-toggle').querySelector('i').className = 'fas fa-sun';
+
+  // Template switcher
+  let currentTemplate = localStorage.getItem('selectedTemplate') || 'template1';
+  function applyTemplate(name) {
+    currentTemplate = name;
+    document.getElementById('template-css').href = `/static/templates/${name}.css`;
+    document.getElementById('resume-preview').className = `resume-preview ${name}`;
+    document.querySelectorAll('.tpl-quick-btn').forEach(b => b.classList.toggle('active', b.dataset.template === name));
+  }
+  applyTemplate(currentTemplate);
+  document.querySelectorAll('.tpl-quick-btn').forEach(btn =>
+    btn.addEventListener('click', () => applyTemplate(btn.dataset.template))
+  );
+
+  // Load resume
+  const resumeId = parseInt('{{ resume_id }}');
+  fetch(`/resume/${resumeId}`)
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(data => {
+      renderResumePreview(data, document.getElementById('resume-preview'));
+    })
+    .catch(() => {
+      document.getElementById('resume-preview').innerHTML = '<div class="preview-placeholder"><i class="fas fa-exclamation-circle"></i><p>Resume not found.</p></div>';
+    });
+
+  // Download PDF
+  document.getElementById('download-pdf-btn').addEventListener('click', () => {
+    const el = document.getElementById('resume-preview');
+    const name = el.querySelector('.preview-name')?.textContent || 'resume';
+    html2pdf().set({
+      margin: [8, 8, 8, 8],
+      filename: `${name.replace(/\s+/g, '_')}_resume.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    }).from(el).save();
+  });
+
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type}`;
+    t.classList.remove('hidden');
+    setTimeout(() => t.classList.add('hidden'), 3000);
+  }
+</script>
+</body>
+</html>

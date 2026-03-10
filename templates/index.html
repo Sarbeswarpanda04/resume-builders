@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Resume Builder</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="stylesheet" id="template-css" href="/static/templates/template1.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body class="light-mode">
+
+<!-- Top Navbar -->
+<nav class="navbar">
+  <div class="nav-brand">
+    <i class="fas fa-file-alt"></i>
+    <span>Smart Resume Builder</span>
+  </div>
+  <div class="nav-actions">
+    <a href="/dashboard" class="btn btn-outline"><i class="fas fa-th-large"></i> Dashboard</a>
+    <button id="dark-mode-toggle" class="btn btn-icon" title="Toggle dark mode">
+      <i class="fas fa-moon"></i>
+    </button>
+  </div>
+</nav>
+
+<div class="app-container">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <h3>Sections</h3>
+      <ul class="sidebar-nav">
+        <li><a href="#section-personal" class="sidebar-link active"><i class="fas fa-user"></i> Personal Info</a></li>
+        <li><a href="#section-summary" class="sidebar-link"><i class="fas fa-align-left"></i> Summary</a></li>
+        <li><a href="#section-education" class="sidebar-link"><i class="fas fa-graduation-cap"></i> Education</a></li>
+        <li><a href="#section-experience" class="sidebar-link"><i class="fas fa-briefcase"></i> Experience</a></li>
+        <li><a href="#section-skills" class="sidebar-link"><i class="fas fa-code"></i> Skills</a></li>
+        <li><a href="#section-projects" class="sidebar-link"><i class="fas fa-project-diagram"></i> Projects</a></li>
+        <li><a href="#section-certifications" class="sidebar-link"><i class="fas fa-certificate"></i> Certifications</a></li>
+        <li><a href="#section-languages" class="sidebar-link"><i class="fas fa-language"></i> Languages</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>Templates</h3>
+      <div class="template-selector">
+        <button class="template-btn active" data-template="template1" title="Professional">
+          <span class="tpl-icon">📋</span> Professional
+        </button>
+        <button class="template-btn" data-template="template2" title="Minimal">
+          <span class="tpl-icon">📄</span> Minimal
+        </button>
+        <button class="template-btn" data-template="template3" title="Modern">
+          <span class="tpl-icon">✨</span> Modern
+        </button>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>Resume Score</h3>
+      <div class="score-container">
+        <div class="score-ring">
+          <svg viewBox="0 0 36 36"><path class="score-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/><path class="score-fill" id="score-arc" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/></svg>
+          <span id="score-value">0%</span>
+        </div>
+        <p class="score-label" id="score-label">Fill out your resume</p>
+      </div>
+    </div>
+
+    <div class="sidebar-actions">
+      <button id="auto-save-indicator" class="autosave-badge"><i class="fas fa-check-circle"></i> Auto Save On</button>
+    </div>
+  </aside>
+
+  <!-- Main Form Area -->
+  <main class="main-content">
+    <form id="resume-form" novalidate>
+
+      <!-- Personal Information -->
+      <section class="form-section" id="section-personal">
+        <div class="section-header">
+          <i class="fas fa-user"></i>
+          <h2>Personal Information</h2>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="name">Full Name <span class="required">*</span></label>
+            <input type="text" id="name" name="name" placeholder="John Doe" maxlength="100" required />
+          </div>
+          <div class="form-group">
+            <label for="email">Email <span class="required">*</span></label>
+            <input type="email" id="email" name="email" placeholder="john@example.com" maxlength="150" required />
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone</label>
+            <input type="tel" id="phone" name="phone" placeholder="+1 234 567 8900" maxlength="30" />
+          </div>
+          <div class="form-group">
+            <label for="address">Address</label>
+            <input type="text" id="address" name="address" placeholder="City, Country" maxlength="200" />
+          </div>
+          <div class="form-group">
+            <label for="linkedin">LinkedIn</label>
+            <input type="text" id="linkedin" name="linkedin" placeholder="linkedin.com/in/username" maxlength="200" />
+          </div>
+          <div class="form-group">
+            <label for="github">GitHub</label>
+            <input type="text" id="github" name="github" placeholder="github.com/username" maxlength="200" />
+          </div>
+          <div class="form-group full-width">
+            <label for="portfolio">Portfolio</label>
+            <input type="text" id="portfolio" name="portfolio" placeholder="yourportfolio.com" maxlength="200" />
+          </div>
+        </div>
+      </section>
+
+      <!-- Professional Summary -->
+      <section class="form-section" id="section-summary">
+        <div class="section-header">
+          <i class="fas fa-align-left"></i>
+          <h2>Professional Summary</h2>
+        </div>
+        <div class="form-group">
+          <label for="summary">Career Objective / Bio</label>
+          <textarea id="summary" name="summary" rows="4" placeholder="Brief description of your professional background and goals..." maxlength="1000"></textarea>
+          <div class="char-count"><span id="summary-count">0</span>/1000</div>
+        </div>
+        <div class="ai-suggestion">
+          <button type="button" id="ai-suggest-btn" class="btn btn-ai">
+            <i class="fas fa-magic"></i> AI Suggest (based on role)
+          </button>
+          <input type="text" id="job-role-input" placeholder="Enter your job role..." />
+        </div>
+      </section>
+
+      <!-- Education -->
+      <section class="form-section" id="section-education">
+        <div class="section-header">
+          <i class="fas fa-graduation-cap"></i>
+          <h2>Education</h2>
+        </div>
+        <div id="education-container"></div>
+        <button type="button" class="btn btn-add" id="add-education">
+          <i class="fas fa-plus"></i> Add Education
+        </button>
+      </section>
+
+      <!-- Work Experience -->
+      <section class="form-section" id="section-experience">
+        <div class="section-header">
+          <i class="fas fa-briefcase"></i>
+          <h2>Work Experience</h2>
+        </div>
+        <div id="experience-container"></div>
+        <button type="button" class="btn btn-add" id="add-experience">
+          <i class="fas fa-plus"></i> Add Experience
+        </button>
+      </section>
+
+      <!-- Skills -->
+      <section class="form-section" id="section-skills">
+        <div class="section-header">
+          <i class="fas fa-code"></i>
+          <h2>Skills</h2>
+        </div>
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label>Programming Languages</label>
+            <div class="tag-input-wrapper">
+              <input type="text" id="skill-lang-input" placeholder="Type and press Enter..." />
+              <div id="skill-lang-tags" class="tag-list"></div>
+            </div>
+          </div>
+          <div class="form-group full-width">
+            <label>Tools</label>
+            <div class="tag-input-wrapper">
+              <input type="text" id="skill-tools-input" placeholder="Type and press Enter..." />
+              <div id="skill-tools-tags" class="tag-list"></div>
+            </div>
+          </div>
+          <div class="form-group full-width">
+            <label>Technologies / Frameworks</label>
+            <div class="tag-input-wrapper">
+              <input type="text" id="skill-tech-input" placeholder="Type and press Enter..." />
+              <div id="skill-tech-tags" class="tag-list"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Projects -->
+      <section class="form-section" id="section-projects">
+        <div class="section-header">
+          <i class="fas fa-project-diagram"></i>
+          <h2>Projects</h2>
+        </div>
+        <div id="projects-container"></div>
+        <button type="button" class="btn btn-add" id="add-project">
+          <i class="fas fa-plus"></i> Add Project
+        </button>
+      </section>
+
+      <!-- Certifications -->
+      <section class="form-section" id="section-certifications">
+        <div class="section-header">
+          <i class="fas fa-certificate"></i>
+          <h2>Certifications</h2>
+        </div>
+        <div class="tag-input-wrapper">
+          <input type="text" id="cert-input" placeholder="Add certification and press Enter..." />
+          <div id="cert-tags" class="tag-list"></div>
+        </div>
+      </section>
+
+      <!-- Languages -->
+      <section class="form-section" id="section-languages">
+        <div class="section-header">
+          <i class="fas fa-language"></i>
+          <h2>Languages</h2>
+        </div>
+        <div class="tag-input-wrapper">
+          <input type="text" id="lang-input" placeholder="Add language and press Enter..." />
+          <div id="lang-tags" class="tag-list"></div>
+        </div>
+      </section>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button type="button" id="save-btn" class="btn btn-primary">
+          <i class="fas fa-save"></i> Save Resume
+        </button>
+        <button type="button" id="download-btn" class="btn btn-success">
+          <i class="fas fa-download"></i> Download PDF
+        </button>
+        <button type="reset" id="clear-btn" class="btn btn-danger">
+          <i class="fas fa-trash"></i> Clear Form
+        </button>
+      </div>
+
+    </form>
+  </main>
+
+  <!-- Preview Pane -->
+  <aside class="preview-pane">
+    <div class="preview-header">
+      <h3><i class="fas fa-eye"></i> Live Preview</h3>
+      <div class="preview-controls">
+        <button id="zoom-in" class="btn btn-icon" title="Zoom In"><i class="fas fa-search-plus"></i></button>
+        <button id="zoom-out" class="btn btn-icon" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+      </div>
+    </div>
+    <div class="preview-wrapper" id="preview-zoom-target">
+      <div id="resume-preview" class="resume-preview template1">
+        <!-- Preview content injected by JS -->
+        <div class="preview-placeholder">
+          <i class="fas fa-file-alt"></i>
+          <p>Start filling the form to see your resume preview</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- Toast notification -->
+<div id="toast" class="toast hidden"></div>
+
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="/static/js/form.js"></script>
+<script src="/static/js/preview.js"></script>
+<script src="/static/js/pdf.js"></script>
+</body>
+</html>
