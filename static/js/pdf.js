@@ -59,6 +59,11 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    if (typeof html2pdf !== 'function') {
+      alert('PDF library failed to load. Please check your internet connection and refresh the page.');
+      return;
+    }
+
     const nameEl = previewEl.querySelector('.preview-name');
     const filename = nameEl?.textContent
       ? `${nameEl.textContent.trim().replace(/\s+/g, '_')}_Resume.pdf`
@@ -69,11 +74,12 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating…';
     btn.disabled = true;
 
-    // Clone the preview into a detached full-size container so transforms
-    // on the live element don't affect html2canvas capture geometry.
+    // Clone into a container directly on <body> so no parent overflow:hidden
+    // can crop the left/right edges of the 794px A4 canvas during capture.
     const clone = previewEl.cloneNode(true);
     clone.style.cssText = [
       'width:794px',
+      'min-height:1123px',
       'transform:none',
       'transform-origin:top left',
       'margin:0',
@@ -81,32 +87,24 @@ document.addEventListener('DOMContentLoaded', () => {
       'box-shadow:none',
       'border-radius:0',
       'overflow:visible',
-    ].join(';');
-
-    // Outer container: fixed at 0,0 with overflow:hidden so html2canvas
-    // cannot capture any pixel that spills beyond the 794px A4 width.
-    const capContainer = document.createElement('div');
-    capContainer.style.cssText = [
-      'position:fixed',
+      'position:absolute',
       'top:0',
-      'left:0',
-      'width:794px',
-      'overflow:hidden',
+      'left:-9999px',
       'background:#fff',
-      'z-index:-9999',
-      'pointer-events:none',
     ].join(';');
-    capContainer.appendChild(clone);
-    document.body.appendChild(capContainer);
+    document.body.appendChild(clone);
 
-    function cleanup() {
-      document.body.removeChild(capContainer);
-      btn.innerHTML = orig;
-      btn.disabled  = false;
-    }
+    // Force reflow so scrollHeight is accurate.
+    void clone.offsetHeight;
 
     const contentHeightPx = clone.scrollHeight;
     const a4HeightMm      = (contentHeightPx / 794) * 210;
+
+    function restore() {
+      if (clone.parentNode) clone.parentNode.removeChild(clone);
+      btn.innerHTML = orig;
+      btn.disabled  = false;
+    }
 
     html2pdf()
       .set({
@@ -114,13 +112,11 @@ document.addEventListener('DOMContentLoaded', () => {
         filename:    filename,
         image:       { type: 'jpeg', quality: 1.0 },
         html2canvas: {
-          scale:       3,
+          scale:       2,
           useCORS:     true,
           logging:     false,
           windowWidth: 794,
           width:       794,
-          x:           0,
-          y:           0,
           scrollX:     0,
           scrollY:     0,
         },
@@ -131,15 +127,16 @@ document.addEventListener('DOMContentLoaded', () => {
           compress:    true,
         },
       })
-      .from(capContainer)
+      .from(clone)
       .save()
       .then(() => {
-        cleanup();
+        restore();
         if (typeof showToast === 'function') showToast('PDF downloaded!', 'success');
       })
-      .catch(() => {
-        cleanup();
-        if (typeof showToast === 'function') showToast('PDF generation failed.', 'error');
+      .catch(err => {
+        console.error('PDF generation error:', err);
+        restore();
+        if (typeof showToast === 'function') showToast('PDF generation failed. Please try again.', 'error');
       });
   });
 });

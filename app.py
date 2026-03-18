@@ -8,6 +8,7 @@ app = Flask(__name__)
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "database", "resumes.json")
 _db_lock = threading.Lock()
+PHOTO_MAX_BASE64_LENGTH = 3_000_000
 
 
 # ---------- helpers ----------
@@ -33,6 +34,23 @@ def _sanitize_str(value, max_len=500):
     if not isinstance(value, str):
         return ""
     return value.strip()[:max_len]
+
+
+def _normalize_phone(value):
+    """Keep only digits from phone input."""
+    return re.sub(r"\D", "", _sanitize_str(value, 30))
+
+
+def _validate_photo_payload(value):
+    """Validate photo data URL and enforce payload size limits."""
+    photo = _sanitize_str(value, PHOTO_MAX_BASE64_LENGTH + 100)
+    if not photo:
+        return None
+    if not re.match(r"^data:image/(jpeg|png|webp);base64,", photo):
+        return "Photo must be a valid JPG, PNG, or WebP image"
+    if len(photo) > PHOTO_MAX_BASE64_LENGTH:
+        return "Photo is too large. Please upload a smaller image (max 2 MB)."
+    return None
 
 
 def _sanitize_resume(data):
@@ -68,13 +86,15 @@ def _sanitize_resume(data):
     photo = data.get("photo", "") or ""
     if photo and not re.match(r"^data:image/(jpeg|png|webp);base64,", photo):
         photo = ""
-    if len(photo) > 500_000:
+    if len(photo) > PHOTO_MAX_BASE64_LENGTH:
         photo = ""
+
+    phone = _normalize_phone(data.get("phone", ""))
 
     return {
         "name":        s("name"),
         "email":       email,
-        "phone":       s("phone", 30),
+        "phone":       phone,
         "address":     s("address"),
         "linkedin":    s("linkedin"),
         "github":      s("github"),
@@ -125,6 +145,12 @@ def save_resume():
     data = request.get_json(silent=True)
     if not data:
         abort(400, "Invalid JSON payload")
+    raw_phone = _sanitize_str(data.get("phone", ""), 30)
+    if raw_phone and len(_normalize_phone(raw_phone)) != 10:
+        return jsonify({"error": "Phone number must be exactly 10 digits"}), 400
+    photo_error = _validate_photo_payload(data.get("photo", ""))
+    if photo_error:
+        return jsonify({"error": photo_error}), 400
     clean = _sanitize_resume(data)
     if clean is None:
         abort(400, "Invalid resume data")
@@ -162,6 +188,12 @@ def update_resume(resume_id):
     data = request.get_json(silent=True)
     if not data:
         abort(400, "Invalid JSON payload")
+    raw_phone = _sanitize_str(data.get("phone", ""), 30)
+    if raw_phone and len(_normalize_phone(raw_phone)) != 10:
+        return jsonify({"error": "Phone number must be exactly 10 digits"}), 400
+    photo_error = _validate_photo_payload(data.get("photo", ""))
+    if photo_error:
+        return jsonify({"error": photo_error}), 400
     clean = _sanitize_resume(data)
     if clean is None:
         abort(400, "Invalid resume data")

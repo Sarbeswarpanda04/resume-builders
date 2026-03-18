@@ -24,6 +24,15 @@ function esc(str) {
   return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 function val(id) { return (document.getElementById(id)?.value || '').trim(); }
+function normalizePhone(value) { return String(value || '').replace(/\D/g, ''); }
+function normalizePhoneToTenDigits(value) {
+  const digits = normalizePhone(value);
+  return digits.length > 10 ? digits.slice(-10) : digits;
+}
+function isValidPhone(value) {
+  const digits = normalizePhoneToTenDigits(value);
+  return digits.length === 10;
+}
 function showToast(msg, type = 'success') {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -337,6 +346,12 @@ function restoreDraft() {
 async function saveResume() {
   const data = collectFormData();
   if (!data.name) { showToast('Please enter your full name.', 'error'); return; }
+  const normalizedPhone = normalizePhoneToTenDigits(data.phone);
+  if (data.phone && !isValidPhone(data.phone)) {
+    showToast('Phone number must be exactly 10 digits.', 'error');
+    return;
+  }
+  if (data.phone) data.phone = normalizedPhone;
 
   const btn = document.getElementById('save-btn');
   const origText = btn.innerHTML;
@@ -378,7 +393,12 @@ async function loadResumeForEdit(id) {
     // Personal
     ['name','email','phone','address','linkedin','github','portfolio','summary'].forEach(f => {
       const el = document.getElementById(f);
-      if (el) el.value = data[f] || '';
+      if (!el) return;
+      if (f === 'phone') {
+        el.value = normalizePhoneToTenDigits(data[f] || '');
+      } else {
+        el.value = data[f] || '';
+      }
     });
     updateSummaryCount();
     // Photo
@@ -562,6 +582,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Live preview on text inputs
   document.querySelectorAll('#resume-form input, #resume-form textarea').forEach(el => {
     el.addEventListener('input', () => {
+      if (el.id === 'phone') {
+        const digits = normalizePhoneToTenDigits(el.value);
+        if (el.value !== digits) el.value = digits;
+      }
       triggerPreviewUpdate();
       computeScore();
       scheduleAutoSave();
@@ -669,7 +693,12 @@ document.addEventListener('DOMContentLoaded', () => {
 function loadFromObject(data) {
   ['name','email','phone','address','linkedin','github','portfolio','summary'].forEach(f => {
     const el = document.getElementById(f);
-    if (el) el.value = data[f] || '';
+    if (!el) return;
+    if (f === 'phone') {
+      el.value = normalizePhoneToTenDigits(data[f] || '');
+    } else {
+      el.value = data[f] || '';
+    }
   });
   updateSummaryCount();
   if (data.photo) {
